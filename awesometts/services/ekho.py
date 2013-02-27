@@ -14,7 +14,7 @@ slanguages = [
 ]
 
 
-import re, subprocess
+import os, re, subprocess
 from anki.utils import stripHTML
 from urllib import quote_plus
 import awesometts.config as config
@@ -49,9 +49,13 @@ def get_language_id(language_code):
 
 def recordEkhoTTS(text, language):
 	text = re.sub("\[sound:.*?\]", "", stripHTML(text.replace("\n", "")).encode('utf-8'))
-	filename = util.generateFileName(text, 'ekho', 'iso-8859-1', '.wav')
+	filename = util.generateRandomName()+'.wav'
 	subprocess.Popen(['ekho', '-v', language, '-t', 'wav', '-o', filename, text], stdin=PIPE, stdout=PIPE, stderr=STDOUT).communicate()
-	return filename.decode('utf-8')
+	
+	md5fn = util.hashfileMD5(filename)+'.mp3'
+	os.rename(filename_mp3, md5fn)
+	
+	return md5fn
 
 def filegenerator_layout(form):
 	global DefaultEkhoVoice

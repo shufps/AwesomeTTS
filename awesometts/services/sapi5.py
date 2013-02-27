@@ -49,12 +49,17 @@ if subprocess.mswindows:
 
 	def recordsapi5TTS(text, voice):
 		text = re.sub("\[sound:.*?\]", "", stripHTML(text.replace("\n", "")))
-		filename_wav = util.generateFileName(text.encode('utf-8'), 'sapi5', 'iso-8859-1', '.wav').decode('utf-8').encode(sys.getfilesystemencoding())
-		filename_mp3 = util.generateFileName(text.encode('utf-8'), 'sapi5', 'iso-8859-1', '.mp3').decode('utf-8').encode(sys.getfilesystemencoding())
+		rndfn = util.generateRandomName()
+		filename_wav = rndfn+'.wav'
+		filename_mp3 = rndfn+'.mp3'
 		subprocess.Popen([vbs_launcher, sapi5_path, '-hex', '-o', filename_wav, '-voice', util.dumpUnicodeStr(voice), util.dumpUnicodeStr(text)], startupinfo=util.si, stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
 		subprocess.Popen(['lame.exe', '--quiet', filename_wav, filename_mp3], startupinfo=util.si, stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
 		os.unlink(filename_wav)
-		return filename_mp3.decode(sys.getfilesystemencoding())
+		
+		md5fn = util.hashfileMD5(filename_mp3)+'.mp3'
+		os.rename(filename_mp3, md5fn)
+		
+		return md5fn
 
 	def filegenerator_layout(form):
 		global DefaultSAPI5Voice

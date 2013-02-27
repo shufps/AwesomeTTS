@@ -56,7 +56,7 @@ slanguages = [['af', 'Afrikaans'],
 TTS_ADDRESS = 'http://translate.google.com/translate_tts'
 
 
-import re, subprocess
+import os, re, subprocess
 from anki.utils import stripHTML
 from urllib import quote_plus
 import awesometts.config as config
@@ -89,14 +89,17 @@ def get_language_id(language_code):
 
 def recordEspeakTTS(text, language):
 	text = re.sub("\[sound:.*?\]", "", stripHTML(text.replace("\n", "")).encode('utf-8'))
-	filename = util.generateFileName(text, 'espeak', 'iso-8859-1', '.mp3')
+	filename = util.generateRandomName()+'.mp3'
 	espeak_exec = subprocess.Popen(['espeak', '-v', language, text, '--stdout'], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
 	lame_exec = Popen(["lame", "-", filename], stdin=espeak_exec.stdout, stdout = PIPE)
 	espeak_exec.stdout.close()
 	result = lame_exec.communicate()[0]
 	espeak_exec.wait()
 
-	return filename.decode('utf-8')
+	md5fn = util.hashfileMD5(filename)+'.mp3'
+	os.rename(filename_mp3, md5fn)	
+
+	return md5fn
 
 def filegenerator_layout(form):
 	global DefaultEspeakVoice

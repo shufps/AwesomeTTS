@@ -50,7 +50,7 @@ slanguages = [['af', 'Afrikaans', 'cp1252'], #or iso-8859-1
 TTS_ADDRESS = 'http://translate.google.com/translate_tts'
 
 
-import re, subprocess, urllib
+import os, re, subprocess, urllib
 from anki.utils import stripHTML
 from urllib import quote_plus
 import awesometts.config as config
@@ -116,14 +116,16 @@ def TTS_record_old(text, language):
 	text = re.sub("\[sound:.*?\]", "", stripHTML(text.replace("\n", "")).encode('utf-8'))
 	address = TTS_ADDRESS+'?tl='+language+'&q='+ quote_plus(text)
 	
-	file = util.generateFileName(text, 'g', slanguages[get_language_id(language)][2])
+	file = util.generateRandomName()+'.mp3'
 	if subprocess.mswindows:
 		subprocess.Popen(['mplayer.exe', '-ao', 'win32', '-slave', '-user-agent', "'Mozilla/5.0'", address, '-dumpstream', '-dumpfile', file], startupinfo=util.si, stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
-		if not config.quote_mp3:
-			return file.decode(slanguages[get_language_id(language)][2])
 	else:
 		subprocess.Popen(['mplayer', '-slave', '-user-agent', "'Mozilla/5.0'", address, '-dumpstream', '-dumpfile', file], stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
-	return file.decode('utf-8')
+		
+	md5fn = util.hashfileMD5(file)+'.mp3'
+	os.rename(file, md5fn)		
+	
+	return md5fn
 
 def filegenerator_layout(form):
 	global DefaultGoogleVoice

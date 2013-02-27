@@ -1,11 +1,31 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, re, subprocess
+import os, sys, re, subprocess, string, random, hashlib
 from anki.utils import stripHTML
 from urllib import quote_plus
 import awesometts.config as config
 
+
 file_max_length = 255 # Max filename length for Unix
+
+def hashfileMD5(afile):
+	return hashfile(afile, hashlib.md5())
+
+def hashfile(afile, hasher, blocksize=65536):
+	fr = open(afile, 'r')
+	buf = fr.read(blocksize)
+	while len(buf) > 0:
+		hasher.update(buf)
+		buf = fr.read(blocksize)
+	fr.close()
+	return hasher.hexdigest()
+
+
+def generateRandomName(size=10, chars=string.ascii_uppercase + string.digits):
+	rs=''
+	for x in range(size):
+		rs+=random.choice(chars)
+	return rs
 
 def generateFileName(text, service, winencode='iso-8859-1', extention=".mp3"):
 	if config.quote_mp3: #re.sub removes \/:*?"<>|[]. from the file name

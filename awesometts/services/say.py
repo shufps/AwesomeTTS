@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtGui,QtCore
-import re, subprocess
+import os, re, subprocess
 from anki.utils import stripHTML, isMac
 from urllib import quote_plus
 import awesometts.config as config
 import awesometts.util as util
 from subprocess import Popen, PIPE, STDOUT
+
 
 if isMac:
 
@@ -34,12 +35,19 @@ if isMac:
 
 	def recordOSXsayTTS(text, voice):
 		text = re.sub("\[sound:.*?\]", "", stripHTML(text.replace("\n", "")).encode('utf-8'))
-		filename_aiff = util.generateFileName(text, 'say', 'iso-8859-1', '.aiff')
-		filename_mp3 = util.generateFileName(text, 'say', 'iso-8859-1', '.mp3')
+		
+		rndfn = util.generateRandomName()
+		filename_aiff = rndfn+'.aiff'
+		filename_mp3 = rndfn+'.mp3'
 		subprocess.Popen(['say', '-v', voice, '-o', filename_aiff, text], stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
 		subprocess.Popen(['lame', '--quiet', filename_aiff, filename_mp3], stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
-		subprocess.Popen(['rm', filename_aiff], stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
-		return filename_mp3.decode('utf-8')
+#		subprocess.Popen(['rm', filename_aiff], stdin=PIPE, stdout=PIPE, stderr=STDOUT).wait()
+		os.unlink(filename_aiff)
+
+		md5fn = util.hashfileMD5(filename_mp3)+'.mp3'
+		os.rename(filename_mp3, md5fn)
+		
+		return md5fn
 
 	def filegenerator_layout(form):
 		global DefaultSayVoice
